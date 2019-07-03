@@ -1,6 +1,6 @@
 {
     "name": "maven/crud-manager",
-    "description": "This package will help you to create crud easily",
+    "description": "This package will help you to create crud easily and it is just starting",
     "type": "library",
     "license": "MIT",
     "authors": [
