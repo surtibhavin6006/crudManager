@@ -15,5 +15,12 @@
         "psr-4": {
             "Maven\\CrudManager\\":"src/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Maven\\CrudManager\\CrudManagerServiceProvider"
+            ]
+        }
     }
 }
