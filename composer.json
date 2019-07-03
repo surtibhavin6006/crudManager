@@ -1,0 +1,14 @@
+{
+    "name": "maven/crud-manager",
+    "description": "This package will help you to create crud easily",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "bhavin surti",
+            "email": "bhavin@mavenagency.co.za"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
