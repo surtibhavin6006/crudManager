@@ -1,45 +1,62 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\{{modelName}}Request;
-use App\{{modelName}};
+use App\Repositories\{{modelNameUCFirst}}Repository;
+use App\Http\Resources\{{modelNameUCFirst}}\{{modelNameUCFirst}}Resource;
+use App\Http\Resources\{{modelNameUCFirst}}\{{modelNamePluralUcFirst}}Resource;
+use App\Http\Requests\Api\{{modelNameUCFirst}}\CreateRequest;
+use App\Http\Requests\Api\{{modelNameUCFirst}}\UpdateRequest;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
-class {{modelName}}Controller extends Controller
+class {{modelNameUCFirst}}Controller extends Controller
 {
-    public function index()
-    {
-        ${{modelNamePluralLowerCase}} = {{modelName}}::latest()->get();
+    protected ${{modelNameCamelCase}}Repo;
 
-        return response()->json(${{modelNamePluralLowerCase}});
+    public function __construct({{modelNameUCFirst}}Repository ${{modelNameCamelCase}}Repo)
+    {
+        $this->{{modelNameCamelCase}}Repo = ${{modelNameCamelCase}}Repo;
     }
 
-    public function store({{modelName}}Request $request)
+    public function index(Request $request)
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::create($request->all());
+        $attributes = array();
+        $attributes['per_page'] = $request->get('per_page','all');
+        $data = $this->{{modelNameCamelCase}}Repo->getAll($attributes);
 
-        return response()->json(${{modelNameSingularLowerCase}}, 201);
+        return new {{modelNamePluralUcFirst}}Resource($data);
+    }
+
+    public function store(CreateRequest $request)
+    {
+        $attributes = array();
+        {{storeAttributes}}
+
+        $response = $this->{{modelNameCamelCase}}Repo->create($attributes);
+
+        return new {{modelNameUCFirst}}Resource($response);
     }
 
     public function show($id)
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
+        $response = $this->{{modelNameCamelCase}}Repo->getById($id);
 
-        return response()->json(${{modelNameSingularLowerCase}});
+        return new {{modelNameUCFirst}}Resource($response);
     }
 
-    public function update({{modelName}}Request $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
-        ${{modelNameSingularLowerCase}}->update($request->all());
+        $attributes = array();
+        {{updateAttributes}}
 
-        return response()->json(${{modelNameSingularLowerCase}}, 200);
+        $response = $this->{{modelNameCamelCase}}Repo->update($id,$attributes);
+
+        return new {{modelNameUCFirst}}Resource($response);
     }
 
     public function destroy($id)
     {
-        {{modelName}}::destroy($id);
 
-        return response()->json(null, 204);
     }
 }

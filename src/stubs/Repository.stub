@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Models\{{modelNameUCFirst}}\{{modelNameUCFirst}};
+use Illuminate\Support\Facades\DB;
+
+class {{modelNameUCFirst}}Repository
+{
+    protected $model;
+
+    public function __construct({{modelNameUCFirst}} $model)
+    {
+        $this->model = $model;
+    }
+
+    function getAll(array $attributes = array())
+    {
+        $perPage = !empty($attributes['per_page']) ? $attributes['per_page'] : 'all';
+
+        if($perPage == 'all'){
+            return $this->model->get();
+        } else {
+            return $this->model->paginate($perPage);
+        }
+    }
+
+    /**
+     * @param $id
+     * @param array $attributes
+     * @return mixed
+     * @throws \Exception
+     */
+    function getById($id, array $attributes = array())
+    {
+        $data = $this->model->find($id);
+
+        if(empty($data)){
+            throw new \Exception('Not able to find record with id:'.$id);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $attributes
+     * @return mixed
+     */
+    function create(array $attributes)
+    {
+        $model = new $this->model;
+
+        {{createAttributes}}
+
+        return DB::transaction(function () use (&$model) {
+
+            if($model->save()){
+                return $model;
+            }
+
+            throw new \Exception('Not able to insert,something went wrong');
+
+        },5);
+    }
+
+    /**
+     * @param $id
+     * @param array $attributes
+     * @return mixed
+     * @throws \Exception
+     */
+    function update($id, array $attributes)
+    {
+        $model = $this->getById($id);
+
+        {{updateAttributes}}
+
+        return DB::transaction(function () use (&$model) {
+
+            if($model->save()){
+                return $model;
+            }
+
+            throw new \Exception('Not able to update,something went wrong');
+
+        },5);
+    }
+
+    function delete($id)
+    {
+        // TODO: Implement delete() method.
+    }
+
+}

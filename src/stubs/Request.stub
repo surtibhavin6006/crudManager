@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Api\{{modelUcFirstName}};
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class {{modelName}}Request extends FormRequest
+class {{Method}}Request extends FormRequest
 {
     public function authorize()
     {

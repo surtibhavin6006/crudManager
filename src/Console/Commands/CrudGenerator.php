@@ -4,17 +4,26 @@ namespace Maven\CrudManager\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use Maven\CrudManager\Console\Commands\Traits\GenerateController;
+use Maven\CrudManager\Console\Commands\Traits\GenerateMigration;
+use Maven\CrudManager\Console\Commands\Traits\GenerateModel;
+use Maven\CrudManager\Console\Commands\Traits\GenerateRepository;
+use Maven\CrudManager\Console\Commands\Traits\GenerateRequest;
+use Maven\CrudManager\Console\Commands\Traits\GenerateResource;
+use Maven\CrudManager\Console\Commands\Traits\GenerateRoute;
+use Maven\CrudManager\Console\Commands\Traits\StringHelper;
 
 class CrudGenerator extends Command
 {
+
+    use StringHelper,GenerateModel,GenerateController,GenerateMigration,GenerateResource,GenerateRepository,GenerateRequest,GenerateRoute;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'crud:generator
-    {name : Class (singular) for example User}';
+    protected $signature = 'crud:generator';
 
     /**
      * The console command description.
@@ -22,6 +31,10 @@ class CrudGenerator extends Command
      * @var string
      */
     protected $description = 'Create CRUD operations';
+
+
+    protected $name = '';
+    protected $fieldsTypesAndValidations = [];
 
     /**
      * Create a new command instance.
@@ -40,64 +53,55 @@ class CrudGenerator extends Command
      */
     public function handle()
     {
-        $name = $this->argument('name');
 
-        $this->getStub('Model');
+        $this->setModuleName();
 
-        $this->controller($name);
-        $this->model($name);
-        $this->request($name);
+        $needMoreFields = true;
+        do {
+            $this->getFieldTypeAndValidation();
+            $needMoreFields = $this->confirm('Do you need more field?');
+        } while($needMoreFields);
 
-        File::append(base_path('routes/api.php'), 'Route::resource(\'' .  Str::plural(strtolower($name)) . "', '{$name}Controller');");
+        $this->displayFields();
+
+
+        $this->generateMigration();
+        $this->generateResource();
+        $this->generateResourceCollection();
+        $this->generateRepository();
+        $this->model();
+        $this->controller();
+        $this->request();
+        $this->route();
+
     }
 
+    protected function setModuleName()
+    {
+        $this->name = $this->ask('Module Name');
+    }
 
     protected function getStub($type)
     {
-        return file_get_contents(__DIR__."/../../stubs/$type.stub");
+        return File::get(__DIR__."/../../stubs/$type.stub");
     }
 
-    protected function model($name)
+    protected function getFieldTypeAndValidation()
     {
-        $modelTemplate = str_replace(
-            ['{{modelName}}'],
-            [$name],
-            $this->getStub('Model')
-        );
+        $fieldName = $this->ask('Please enter field name');
+        $fieldType = $this->ask('Please enter field type');
 
-        file_put_contents(app_path("/{$name}.php"), $modelTemplate);
+        $this->fieldsTypesAndValidations[] = array(
+            'fieldName' => $fieldName,
+            'fieldType' => $fieldType,
+        );
     }
 
-    protected function controller($name)
+    protected function displayFields()
     {
-        $controllerTemplate = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{modelNameSingularLowerCase}}'
-            ],
-            [
-                $name,
-                strtolower(Str::plural($name)),
-                strtolower($name)
-            ],
-            $this->getStub('Controller')
-        );
+        $headers = ['Field','Type'];
 
-        file_put_contents(app_path("/Http/Controllers/{$name}Controller.php"), $controllerTemplate);
+        $this->table($headers, $this->fieldsTypesAndValidations);
     }
 
-    protected function request($name)
-    {
-        $requestTemplate = str_replace(
-            ['{{modelName}}'],
-            [$name],
-            $this->getStub('Request')
-        );
-
-        if(!file_exists($path = app_path('/Http/Requests')))
-            mkdir($path, 0777, true);
-
-        file_put_contents(app_path("/Http/Requests/{$name}Request.php"), $requestTemplate);
-    }
 }
